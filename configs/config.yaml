@@ -1,0 +1,8 @@
+server:
+  port: 8080
+
+services:
+  users: http://localhost:8081
+  orders: http://localhost:8082
+  payments: http://localhost:8083
+  notifications: http://localhost:8084
