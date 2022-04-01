@@ -49,6 +49,7 @@ func Setup(h *handlers.Handlers, authMW *middleware.AuthMiddleware, cfg *config.
 	mux.Handle("POST /api/v2/notifications/email", authMW.Authenticate(http.HandlerFunc(h.Notifications.SendEmail)))
 	mux.Handle("POST /api/v2/notifications/sms", authMW.Authenticate(http.HandlerFunc(h.Notifications.SendSMS)))
 
+	// API-100: Initial v1 API routes (2022-04)
 	if cfg.EnableV1API {
 		mux.Handle("GET /api/v1/users/{id}", authMW.AuthenticateLegacy(http.HandlerFunc(h.Users.GetUserV1)))
 		mux.Handle("POST /api/v1/users", authMW.AuthenticateLegacy(http.HandlerFunc(h.Users.CreateUserV1)))
