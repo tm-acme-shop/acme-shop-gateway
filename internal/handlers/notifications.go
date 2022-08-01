@@ -20,6 +20,16 @@ func NewNotificationsHandler(cfg *config.Config, client *proxy.Client) *Notifica
 	}
 }
 
+func (h *NotificationsHandler) SendNotification(w http.ResponseWriter, r *http.Request) {
+	log.Printf("SendNotification")
+	h.client.ProxyRequest(w, r, h.config.NotificationsServiceURL+"/v2/notifications")
+}
+
+func (h *NotificationsHandler) SendEmail(w http.ResponseWriter, r *http.Request) {
+	log.Printf("SendEmail")
+	h.client.ProxyRequest(w, r, h.config.NotificationsServiceURL+"/v2/notifications/email")
+}
+
 func (h *NotificationsHandler) SendEmailLegacy(w http.ResponseWriter, r *http.Request) {
 	log.Printf("SendEmailLegacy")
 	h.client.ProxyRequest(w, r, h.config.NotificationsServiceURL+"/email/send")

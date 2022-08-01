@@ -20,6 +20,17 @@ func NewOrdersHandler(cfg *config.Config, client *proxy.Client) *OrdersHandler {
 	}
 }
 
+func (h *OrdersHandler) GetOrder(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	log.Printf("GetOrder: id=%s", id)
+	h.client.ProxyRequest(w, r, h.config.OrdersServiceURL+"/v2/orders/"+id)
+}
+
+func (h *OrdersHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
+	log.Printf("CreateOrder")
+	h.client.ProxyRequest(w, r, h.config.OrdersServiceURL+"/v2/orders")
+}
+
 func (h *OrdersHandler) GetOrderV1(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	log.Printf("GetOrderV1: id=%s", id)

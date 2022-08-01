@@ -6,6 +6,7 @@ import (
 )
 
 type Handlers struct {
+	Auth          *AuthHandler
 	Users         *UsersHandler
 	Orders        *OrdersHandler
 	Payments      *PaymentsHandler
@@ -14,6 +15,7 @@ type Handlers struct {
 
 func New(cfg *config.Config, client *proxy.Client) *Handlers {
 	return &Handlers{
+		Auth:          NewAuthHandler(cfg),
 		Users:         NewUsersHandler(cfg, client),
 		Orders:        NewOrdersHandler(cfg, client),
 		Payments:      NewPaymentsHandler(cfg, client),

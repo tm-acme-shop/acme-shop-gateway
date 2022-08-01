@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strconv"
 )
 
 type Config struct {
@@ -10,6 +11,10 @@ type Config struct {
 	OrdersServiceURL        string
 	PaymentsServiceURL      string
 	NotificationsServiceURL string
+	JWTSecret               string
+	EnableLegacyAuth        bool
+	EnableV1API             bool
+	RateLimitRPS            int
 }
 
 func Load() *Config {
@@ -19,12 +24,38 @@ func Load() *Config {
 		OrdersServiceURL:        getEnv("ORDERS_SERVICE_URL", "http://localhost:8082"),
 		PaymentsServiceURL:      getEnv("PAYMENTS_SERVICE_URL", "http://localhost:8083"),
 		NotificationsServiceURL: getEnv("NOTIFICATIONS_SERVICE_URL", "http://localhost:8084"),
+		JWTSecret:               getEnv("JWT_SECRET", "your-secret-key"),
+		EnableLegacyAuth:        getEnvBool("ENABLE_LEGACY_AUTH", true),
+		EnableV1API:             getEnvBool("ENABLE_V1_API", true),
+		RateLimitRPS:            getEnvInt("RATE_LIMIT_RPS", 100),
 	}
 }
 
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
+	}
+	return defaultValue
+}
+
+func getEnvBool(key string, defaultValue bool) bool {
+	if value := os.Getenv(key); value != "" {
+		b, err := strconv.ParseBool(value)
+		if err != nil {
+			return defaultValue
+		}
+		return b
+	}
+	return defaultValue
+}
+
+func getEnvInt(key string, defaultValue int) int {
+	if value := os.Getenv(key); value != "" {
+		i, err := strconv.Atoi(value)
+		if err != nil {
+			return defaultValue
+		}
+		return i
 	}
 	return defaultValue
 }

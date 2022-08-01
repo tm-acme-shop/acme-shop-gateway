@@ -20,6 +20,11 @@ func NewPaymentsHandler(cfg *config.Config, client *proxy.Client) *PaymentsHandl
 	}
 }
 
+func (h *PaymentsHandler) ProcessPayment(w http.ResponseWriter, r *http.Request) {
+	log.Printf("ProcessPayment")
+	h.client.ProxyRequest(w, r, h.config.PaymentsServiceURL+"/v2/payments")
+}
+
 func (h *PaymentsHandler) ProcessPaymentV1(w http.ResponseWriter, r *http.Request) {
 	log.Printf("ProcessPaymentV1")
 	h.client.ProxyRequest(w, r, h.config.PaymentsServiceURL+"/payments")

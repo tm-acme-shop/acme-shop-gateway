@@ -4,27 +4,63 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/tm-acme-shop/acme-shop-gateway/internal/config"
+	"github.com/tm-acme-shop/acme-shop-gateway/internal/jwt"
 )
 
 type contextKey string
 
 const (
 	ContextKeyUserID contextKey = "user_id"
+	ContextKeyRole   contextKey = "role"
 )
 
 type AuthMiddleware struct {
-	config *config.Config
+	config    *config.Config
+	jwtParser *jwt.Parser
 }
 
 func NewAuthMiddleware(cfg *config.Config) *AuthMiddleware {
 	return &AuthMiddleware{
-		config: cfg,
+		config:    cfg,
+		jwtParser: jwt.NewParser(cfg.JWTSecret),
 	}
 }
 
-// AuthenticateLegacy uses the X-Legacy-User-Id header for authentication.
+func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
+		if authHeader == "" {
+			http.Error(w, "Missing authorization header", http.StatusUnauthorized)
+			return
+		}
+
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			http.Error(w, "Invalid authorization header format", http.StatusUnauthorized)
+			return
+		}
+
+		claims, err := m.jwtParser.Parse(parts[1])
+		if err != nil {
+			log.Printf("JWT parse failed: %v", err)
+			http.Error(w, "Invalid token", http.StatusUnauthorized)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), ContextKeyUserID, claims.UserID)
+		ctx = context.WithValue(ctx, ContextKeyRole, claims.Role)
+
+		log.Printf("Request authenticated: user_id=%s role=%s", claims.UserID, claims.Role)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// AuthenticateLegacy uses the old X-Legacy-User-Id header for authentication.
+// Deprecated: Use Authenticate with JWT tokens instead.
 func (m *AuthMiddleware) AuthenticateLegacy(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID := r.Header.Get("X-Legacy-User-Id")
@@ -33,17 +69,48 @@ func (m *AuthMiddleware) AuthenticateLegacy(next http.Handler) http.Handler {
 			return
 		}
 
-		log.Printf("Legacy auth: user=%s", userID)
+		log.Printf("Legacy auth used for user: %s", userID)
 
 		ctx := context.WithValue(r.Context(), ContextKeyUserID, userID)
+		ctx = context.WithValue(ctx, ContextKeyRole, "customer")
+
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func (m *AuthMiddleware) RequireRole(roles ...string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			role, ok := r.Context().Value(ContextKeyRole).(string)
+			if !ok {
+				http.Error(w, "No role in context", http.StatusForbidden)
+				return
+			}
+
+			for _, allowedRole := range roles {
+				if role == allowedRole {
+					next.ServeHTTP(w, r)
+					return
+				}
+			}
+
+			http.Error(w, "Insufficient permissions", http.StatusForbidden)
+		})
+	}
 }
 
 // GetUserIDFromContext retrieves the user ID from the request context.
 func GetUserIDFromContext(ctx context.Context) string {
 	if userID, ok := ctx.Value(ContextKeyUserID).(string); ok {
 		return userID
+	}
+	return ""
+}
+
+// GetRoleFromContext retrieves the role from the request context.
+func GetRoleFromContext(ctx context.Context) string {
+	if role, ok := ctx.Value(ContextKeyRole).(string); ok {
+		return role
 	}
 	return ""
 }
