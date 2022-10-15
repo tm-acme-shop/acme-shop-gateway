@@ -8,6 +8,7 @@ import (
 	"github.com/tm-acme-shop/acme-shop-shared-go/utils"
 )
 
+// PLAT-020: X-Acme-Request-ID correlation header for request tracing (2022-10)
 const (
 	HeaderRequestID       = "X-Acme-Request-ID"
 	HeaderLegacyRequestID = "X-Request-ID"
