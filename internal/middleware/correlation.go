@@ -2,14 +2,16 @@ package middleware
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"github.com/google/uuid"
 )
 
 const (
-	HeaderRequestID     = "X-Acme-Request-ID"
-	ContextKeyRequestID contextKey = "request_id"
+	HeaderRequestID       = "X-Acme-Request-ID"
+	HeaderLegacyRequestID = "X-Request-ID"
+	ContextKeyRequestID   contextKey = "request_id"
 )
 
 type CorrelationMiddleware struct{}
@@ -21,6 +23,14 @@ func NewCorrelationMiddleware() *CorrelationMiddleware {
 func (m *CorrelationMiddleware) AddRequestID(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestID := r.Header.Get(HeaderRequestID)
+
+		// TODO(TEAM-API): Remove legacy header support after migration
+		if requestID == "" {
+			requestID = r.Header.Get(HeaderLegacyRequestID)
+			if requestID != "" {
+				log.Printf("Legacy X-Request-ID header used, migrate to X-Acme-Request-ID")
+			}
+		}
 
 		if requestID == "" {
 			requestID = uuid.New().String()

@@ -25,9 +25,20 @@ func (h *NotificationsHandler) SendNotification(w http.ResponseWriter, r *http.R
 	h.client.ProxyRequest(w, r, h.config.NotificationsServiceURL+"/v2/notifications")
 }
 
+func (h *NotificationsHandler) GetNotification(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	log.Printf("GetNotification: id=%s", id)
+	h.client.ProxyRequest(w, r, h.config.NotificationsServiceURL+"/v2/notifications/"+id)
+}
+
 func (h *NotificationsHandler) SendEmail(w http.ResponseWriter, r *http.Request) {
 	log.Printf("SendEmail")
 	h.client.ProxyRequest(w, r, h.config.NotificationsServiceURL+"/v2/notifications/email")
+}
+
+func (h *NotificationsHandler) SendSMS(w http.ResponseWriter, r *http.Request) {
+	log.Printf("SendSMS")
+	h.client.ProxyRequest(w, r, h.config.NotificationsServiceURL+"/v2/notifications/sms")
 }
 
 func (h *NotificationsHandler) SendEmailLegacy(w http.ResponseWriter, r *http.Request) {

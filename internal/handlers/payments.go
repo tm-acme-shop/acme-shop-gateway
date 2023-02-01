@@ -25,6 +25,18 @@ func (h *PaymentsHandler) ProcessPayment(w http.ResponseWriter, r *http.Request)
 	h.client.ProxyRequest(w, r, h.config.PaymentsServiceURL+"/v2/payments")
 }
 
+func (h *PaymentsHandler) GetPayment(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	log.Printf("GetPayment: id=%s", id)
+	h.client.ProxyRequest(w, r, h.config.PaymentsServiceURL+"/v2/payments/"+id)
+}
+
+func (h *PaymentsHandler) RefundPayment(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	log.Printf("RefundPayment: id=%s", id)
+	h.client.ProxyRequest(w, r, h.config.PaymentsServiceURL+"/v2/payments/"+id+"/refund")
+}
+
 func (h *PaymentsHandler) ProcessPaymentV1(w http.ResponseWriter, r *http.Request) {
 	log.Printf("ProcessPaymentV1")
 	h.client.ProxyRequest(w, r, h.config.PaymentsServiceURL+"/payments")

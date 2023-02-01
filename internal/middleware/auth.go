@@ -61,8 +61,10 @@ func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 
 // AuthenticateLegacy uses the old X-Legacy-User-Id header for authentication.
 // Deprecated: Use Authenticate with JWT tokens instead.
+// TODO(TEAM-SEC): Remove after migration to JWT auth is complete
 func (m *AuthMiddleware) AuthenticateLegacy(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// TODO(TEAM-SEC): This is insecure, should be removed
 		userID := r.Header.Get("X-Legacy-User-Id")
 		if userID == "" {
 			http.Error(w, "Missing X-Legacy-User-Id header", http.StatusUnauthorized)

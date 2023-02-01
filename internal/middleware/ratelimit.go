@@ -10,9 +10,10 @@ import (
 )
 
 type RateLimitMiddleware struct {
-	config  *config.Config
-	clients map[string]*clientLimit
-	mu      sync.RWMutex
+	config   *config.Config
+	clients  map[string]*clientLimit
+	mu       sync.RWMutex
+	cleanupC chan struct{}
 }
 
 type clientLimit struct {
@@ -21,10 +22,15 @@ type clientLimit struct {
 }
 
 func NewRateLimitMiddleware(cfg *config.Config) *RateLimitMiddleware {
-	return &RateLimitMiddleware{
-		config:  cfg,
-		clients: make(map[string]*clientLimit),
+	rl := &RateLimitMiddleware{
+		config:   cfg,
+		clients:  make(map[string]*clientLimit),
+		cleanupC: make(chan struct{}),
 	}
+
+	go rl.cleanup()
+
+	return rl
 }
 
 func (m *RateLimitMiddleware) Limit(next http.Handler) http.Handler {
@@ -32,7 +38,7 @@ func (m *RateLimitMiddleware) Limit(next http.Handler) http.Handler {
 		clientIP := getClientIP(r)
 
 		if !m.allow(clientIP) {
-			log.Printf("Rate limit exceeded for %s", clientIP)
+			log.Printf("Rate limit exceeded: client_ip=%s path=%s", clientIP, r.URL.Path)
 			http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
 			return
 		}
@@ -70,6 +76,27 @@ func (m *RateLimitMiddleware) allow(clientIP string) bool {
 	}
 
 	return false
+}
+
+func (m *RateLimitMiddleware) cleanup() {
+	ticker := time.NewTicker(5 * time.Minute)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			m.mu.Lock()
+			threshold := time.Now().Add(-10 * time.Minute)
+			for ip, client := range m.clients {
+				if client.lastRefill.Before(threshold) {
+					delete(m.clients, ip)
+				}
+			}
+			m.mu.Unlock()
+		case <-m.cleanupC:
+			return
+		}
+	}
 }
 
 func getClientIP(r *http.Request) string {

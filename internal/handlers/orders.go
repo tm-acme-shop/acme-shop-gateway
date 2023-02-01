@@ -31,6 +31,17 @@ func (h *OrdersHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	h.client.ProxyRequest(w, r, h.config.OrdersServiceURL+"/v2/orders")
 }
 
+func (h *OrdersHandler) UpdateOrderStatus(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	log.Printf("UpdateOrderStatus: id=%s", id)
+	h.client.ProxyRequest(w, r, h.config.OrdersServiceURL+"/v2/orders/"+id+"/status")
+}
+
+func (h *OrdersHandler) ListUserOrders(w http.ResponseWriter, r *http.Request) {
+	log.Printf("ListUserOrders")
+	h.client.ProxyRequest(w, r, h.config.OrdersServiceURL+"/v2/orders")
+}
+
 func (h *OrdersHandler) GetOrderV1(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	log.Printf("GetOrderV1: id=%s", id)

@@ -15,6 +15,7 @@ type Config struct {
 	EnableLegacyAuth        bool
 	EnableV1API             bool
 	RateLimitRPS            int
+	RequestTimeout          int
 }
 
 func Load() *Config {
@@ -28,6 +29,7 @@ func Load() *Config {
 		EnableLegacyAuth:        getEnvBool("ENABLE_LEGACY_AUTH", true),
 		EnableV1API:             getEnvBool("ENABLE_V1_API", true),
 		RateLimitRPS:            getEnvInt("RATE_LIMIT_RPS", 100),
+		RequestTimeout:          getEnvInt("REQUEST_TIMEOUT_SECONDS", 30),
 	}
 }
 
