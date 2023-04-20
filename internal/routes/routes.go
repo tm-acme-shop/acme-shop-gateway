@@ -27,6 +27,7 @@ func Setup(h *handlers.Handlers, authMW *middleware.AuthMiddleware, cfg *config.
 		mux.HandleFunc("POST /auth/login/legacy", h.Auth.LoginLegacy)
 	}
 
+	// API-150: v2 API routes with new JWT auth (2023-04)
 	mux.Handle("GET /api/v2/users/{id}", authMW.Authenticate(http.HandlerFunc(h.Users.GetUser)))
 	mux.Handle("POST /api/v2/users", authMW.Authenticate(authMW.RequireRole("admin")(http.HandlerFunc(h.Users.CreateUser))))
 	mux.Handle("PUT /api/v2/users/{id}", authMW.Authenticate(http.HandlerFunc(h.Users.UpdateUser)))
