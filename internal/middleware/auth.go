@@ -62,6 +62,7 @@ func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 	})
 }
 
+// API-175: DEPRECATED - Legacy authentication middleware
 // AuthenticateLegacy uses the old X-Legacy-User-Id header for authentication.
 // Deprecated: Use Authenticate with JWT tokens instead.
 // TODO(TEAM-SEC): Remove after migration to JWT auth is complete
