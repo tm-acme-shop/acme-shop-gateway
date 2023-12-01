@@ -2,10 +2,10 @@ package middleware
 
 import (
 	"context"
-	"log"
 	"net/http"
 
-	"github.com/google/uuid"
+	"github.com/tm-acme-shop/acme-shop-shared-go/logging"
+	"github.com/tm-acme-shop/acme-shop-shared-go/utils"
 )
 
 const (
@@ -28,15 +28,16 @@ func (m *CorrelationMiddleware) AddRequestID(next http.Handler) http.Handler {
 		if requestID == "" {
 			requestID = r.Header.Get(HeaderLegacyRequestID)
 			if requestID != "" {
-				log.Printf("Legacy X-Request-ID header used, migrate to X-Acme-Request-ID")
+				logging.Warnf("Legacy X-Request-ID header used, migrate to X-Acme-Request-ID")
 			}
 		}
 
 		if requestID == "" {
-			requestID = uuid.New().String()
+			requestID = utils.GenerateID("req")
 		}
 
 		ctx := context.WithValue(r.Context(), ContextKeyRequestID, requestID)
+		ctx = context.WithValue(ctx, logging.ContextKeyRequestID, requestID)
 
 		w.Header().Set(HeaderRequestID, requestID)
 

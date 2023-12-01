@@ -2,12 +2,12 @@ package middleware
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"strings"
 
 	"github.com/tm-acme-shop/acme-shop-gateway/internal/config"
 	"github.com/tm-acme-shop/acme-shop-gateway/internal/jwt"
+	"github.com/tm-acme-shop/acme-shop-shared-go/logging"
 )
 
 type contextKey string
@@ -45,7 +45,7 @@ func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 
 		claims, err := m.jwtParser.Parse(parts[1])
 		if err != nil {
-			log.Printf("JWT parse failed: %v", err)
+			logging.Warnf("JWT parse failed: %v", err)
 			http.Error(w, "Invalid token", http.StatusUnauthorized)
 			return
 		}
@@ -53,7 +53,10 @@ func (m *AuthMiddleware) Authenticate(next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), ContextKeyUserID, claims.UserID)
 		ctx = context.WithValue(ctx, ContextKeyRole, claims.Role)
 
-		log.Printf("Request authenticated: user_id=%s role=%s", claims.UserID, claims.Role)
+		logging.Info("Request authenticated", logging.Fields{
+			"user_id": claims.UserID,
+			"role":    claims.Role,
+		})
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
@@ -71,7 +74,7 @@ func (m *AuthMiddleware) AuthenticateLegacy(next http.Handler) http.Handler {
 			return
 		}
 
-		log.Printf("Legacy auth used for user: %s", userID)
+		logging.Warnf("Legacy auth used for user: %s", userID)
 
 		ctx := context.WithValue(r.Context(), ContextKeyUserID, userID)
 		ctx = context.WithValue(ctx, ContextKeyRole, "customer")

@@ -1,12 +1,12 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
 	"sync"
 	"time"
 
 	"github.com/tm-acme-shop/acme-shop-gateway/internal/config"
+	"github.com/tm-acme-shop/acme-shop-shared-go/logging"
 )
 
 type RateLimitMiddleware struct {
@@ -38,7 +38,10 @@ func (m *RateLimitMiddleware) Limit(next http.Handler) http.Handler {
 		clientIP := getClientIP(r)
 
 		if !m.allow(clientIP) {
-			log.Printf("Rate limit exceeded: client_ip=%s path=%s", clientIP, r.URL.Path)
+			logging.Warn("Rate limit exceeded", logging.Fields{
+				"client_ip": clientIP,
+				"path":      r.URL.Path,
+			})
 			http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
 			return
 		}

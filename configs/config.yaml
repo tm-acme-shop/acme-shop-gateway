@@ -1,8 +1,37 @@
 server:
   port: 8080
+  read_timeout: 15s
+  write_timeout: 15s
+  idle_timeout: 60s
 
 services:
-  users: http://localhost:8081
-  orders: http://localhost:8082
-  payments: http://localhost:8083
-  notifications: http://localhost:8084
+  users:
+    url: http://localhost:8081
+    timeout: 30s
+  orders:
+    url: http://localhost:8082
+    timeout: 30s
+  payments:
+    url: http://localhost:8083
+    timeout: 30s
+  notifications:
+    url: http://localhost:8084
+    timeout: 30s
+
+auth:
+  jwt_secret: ${JWT_SECRET}
+  token_expiry: 24h
+
+rate_limit:
+  enabled: true
+  requests_per_second: 100
+  burst: 200
+
+features:
+  enable_legacy_auth: true
+  enable_v1_api: true
+  enable_metrics: true
+
+logging:
+  level: info
+  format: json

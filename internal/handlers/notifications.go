@@ -1,47 +1,119 @@
 package handlers
 
 import (
-	"log"
+	"encoding/json"
 	"net/http"
 
-	"github.com/tm-acme-shop/acme-shop-gateway/internal/config"
 	"github.com/tm-acme-shop/acme-shop-gateway/internal/proxy"
+	"github.com/tm-acme-shop/acme-shop-shared-go/logging"
 )
 
 type NotificationsHandler struct {
-	config *config.Config
-	client *proxy.Client
+	proxy *proxy.Client
 }
 
-func NewNotificationsHandler(cfg *config.Config, client *proxy.Client) *NotificationsHandler {
-	return &NotificationsHandler{
-		config: cfg,
-		client: client,
-	}
+func NewNotificationsHandler(proxy *proxy.Client) *NotificationsHandler {
+	return &NotificationsHandler{proxy: proxy}
 }
 
 func (h *NotificationsHandler) SendNotification(w http.ResponseWriter, r *http.Request) {
-	log.Printf("SendNotification")
-	h.client.ProxyRequest(w, r, h.config.NotificationsServiceURL+"/v2/notifications")
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	logging.Info("Sending notification", logging.Fields{
+		"type":      req["type"],
+		"recipient": req["recipient"],
+	})
+
+	body, status, err := h.proxy.ProxyToNotifications(r.Context(), "POST", "/api/v2/notifications", req)
+	if err != nil {
+		logging.Error("Failed to send notification", logging.Fields{"error": err.Error()})
+		http.Error(w, "Service unavailable", http.StatusServiceUnavailable)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	w.Write(body)
 }
 
 func (h *NotificationsHandler) GetNotification(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	log.Printf("GetNotification: id=%s", id)
-	h.client.ProxyRequest(w, r, h.config.NotificationsServiceURL+"/v2/notifications/"+id)
+	notificationID := r.PathValue("id")
+	if notificationID == "" {
+		http.Error(w, "Notification ID required", http.StatusBadRequest)
+		return
+	}
+
+	body, status, err := h.proxy.ProxyToNotifications(r.Context(), "GET", "/api/v2/notifications/"+notificationID, nil)
+	if err != nil {
+		http.Error(w, "Service unavailable", http.StatusServiceUnavailable)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	w.Write(body)
 }
 
 func (h *NotificationsHandler) SendEmail(w http.ResponseWriter, r *http.Request) {
-	log.Printf("SendEmail")
-	h.client.ProxyRequest(w, r, h.config.NotificationsServiceURL+"/v2/notifications/email")
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	body, status, err := h.proxy.ProxyToNotifications(r.Context(), "POST", "/api/v2/notifications/email", req)
+	if err != nil {
+		http.Error(w, "Service unavailable", http.StatusServiceUnavailable)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	w.Write(body)
 }
 
 func (h *NotificationsHandler) SendSMS(w http.ResponseWriter, r *http.Request) {
-	log.Printf("SendSMS")
-	h.client.ProxyRequest(w, r, h.config.NotificationsServiceURL+"/v2/notifications/sms")
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	body, status, err := h.proxy.ProxyToNotifications(r.Context(), "POST", "/api/v2/notifications/sms", req)
+	if err != nil {
+		http.Error(w, "Service unavailable", http.StatusServiceUnavailable)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	w.Write(body)
 }
 
+// SendEmailLegacy sends an email using the legacy format.
+// Deprecated: Use SendEmail instead.
+// TODO(TEAM-NOTIFICATIONS): Migrate all callers to new API
 func (h *NotificationsHandler) SendEmailLegacy(w http.ResponseWriter, r *http.Request) {
-	log.Printf("SendEmailLegacy")
-	h.client.ProxyRequest(w, r, h.config.NotificationsServiceURL+"/email/send")
+	var req map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	logging.Warnf("Legacy email API called")
+
+	body, status, err := h.proxy.ProxyToNotifications(r.Context(), "POST", "/api/v1/email/send", req)
+	if err != nil {
+		http.Error(w, "Service unavailable", http.StatusServiceUnavailable)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("X-API-Deprecated", "true")
+	w.WriteHeader(status)
+	w.Write(body)
 }

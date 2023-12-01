@@ -6,21 +6,21 @@ import (
 )
 
 type Handlers struct {
-	Auth          *AuthHandler
-	Health        *HealthHandler
 	Users         *UsersHandler
 	Orders        *OrdersHandler
 	Payments      *PaymentsHandler
 	Notifications *NotificationsHandler
+	Health        *HealthHandler
+	Auth          *AuthHandler
 }
 
-func New(cfg *config.Config, client *proxy.Client) *Handlers {
+func NewHandlers(proxyClient *proxy.Client, cfg *config.Config) *Handlers {
 	return &Handlers{
-		Auth:          NewAuthHandler(cfg),
+		Users:         NewUsersHandler(proxyClient),
+		Orders:        NewOrdersHandler(proxyClient),
+		Payments:      NewPaymentsHandler(proxyClient),
+		Notifications: NewNotificationsHandler(proxyClient),
 		Health:        NewHealthHandler(),
-		Users:         NewUsersHandler(cfg, client),
-		Orders:        NewOrdersHandler(cfg, client),
-		Payments:      NewPaymentsHandler(cfg, client),
-		Notifications: NewNotificationsHandler(cfg, client),
+		Auth:          NewAuthHandler(cfg),
 	}
 }

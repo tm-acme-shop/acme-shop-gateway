@@ -1,9 +1,10 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
 	"time"
+
+	"github.com/tm-acme-shop/acme-shop-shared-go/logging"
 )
 
 type LoggingMiddleware struct{}
@@ -40,7 +41,7 @@ func (m *LoggingMiddleware) Log(next http.Handler) http.Handler {
 		duration := time.Since(start)
 
 		// TODO(TEAM-PLATFORM): Migrate all logging to structured format
-		log.Printf("[%s] %s %s - %d (%dms)",
+		logging.Infof("[%s] %s %s - %d (%dms)",
 			r.Method,
 			r.URL.Path,
 			r.RemoteAddr,
@@ -48,12 +49,13 @@ func (m *LoggingMiddleware) Log(next http.Handler) http.Handler {
 			duration.Milliseconds(),
 		)
 
-		log.Printf("Request completed: method=%s path=%s status=%d duration_ms=%d bytes=%d",
-			r.Method,
-			r.URL.Path,
-			rw.statusCode,
-			duration.Milliseconds(),
-			rw.bytes,
-		)
+		logging.Info("Request completed", logging.Fields{
+			"method":      r.Method,
+			"path":        r.URL.Path,
+			"status":      rw.statusCode,
+			"duration_ms": duration.Milliseconds(),
+			"bytes":       rw.bytes,
+			"user_agent":  r.UserAgent(),
+		})
 	})
 }
