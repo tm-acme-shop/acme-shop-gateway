@@ -5,6 +5,7 @@ import (
 	"github.com/tm-acme-shop/acme-shop-gateway/internal/proxy"
 )
 
+// PLAT-060: Standardized logging across all handlers (2024-03)
 type Handlers struct {
 	Users         *UsersHandler
 	Orders        *OrdersHandler
