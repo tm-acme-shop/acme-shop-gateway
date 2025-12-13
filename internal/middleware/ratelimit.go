@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"log"
 	"net/http"
 	"sync"
 	"time"
@@ -90,11 +91,15 @@ func (m *RateLimitMiddleware) cleanup() {
 		case <-ticker.C:
 			m.mu.Lock()
 			threshold := time.Now().Add(-10 * time.Minute)
+			cleanedCount := 0
 			for ip, client := range m.clients {
 				if client.lastRefill.Before(threshold) {
 					delete(m.clients, ip)
+					cleanedCount++
 				}
 			}
+			// TODO(TEAM-PLATFORM): Migrate to structured logging
+			log.Printf("Rate limiter cleanup: removed %d stale clients", cleanedCount)
 			m.mu.Unlock()
 		case <-m.cleanupC:
 			return

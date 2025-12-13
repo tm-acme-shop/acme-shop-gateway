@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -103,6 +104,14 @@ func (c *Client) proxy(ctx context.Context, baseURL, method, path string, body i
 // Deprecated: Use ProxyToUsers instead.
 // TODO(TEAM-API): Remove after v1 API deprecation
 func (c *Client) ProxyToUsersLegacy(ctx context.Context, method, path string, body interface{}) ([]byte, int, error) {
-	logging.Warnf("Legacy proxy to users service: %s %s", method, path)
+	log.Printf("Legacy proxy to users service: %s %s", method, path)
 	return c.proxy(ctx, c.config.UsersServiceURL, method, "/v1"+path, body)
+}
+
+// ProxyToOrdersLegacy proxies requests using the old v1 API format.
+// Deprecated: Use ProxyToOrders instead.
+// TODO(TEAM-API): Remove after v1 API deprecation
+func (c *Client) ProxyToOrdersLegacy(ctx context.Context, method, path string, body interface{}) ([]byte, int, error) {
+	log.Printf("Legacy proxy to orders service: %s %s", method, path)
+	return c.proxy(ctx, c.config.OrdersServiceURL, method, "/v1"+path, body)
 }
