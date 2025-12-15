@@ -8,5 +8,3 @@ require (
 )
 
 require golang.org/x/crypto v0.17.0 // indirect
-
-replace github.com/tm-acme-shop/acme-shop-shared-go => ../acme-shop-shared-go
