@@ -28,7 +28,7 @@ rate_limit:
   burst: 200
 
 features:
-  enable_legacy_auth: true
+  enable_new_auth: true
   enable_v1_api: true
   enable_metrics: true
 
