@@ -17,7 +17,7 @@ API Gateway service for the AcmeShop platform. Routes requests to internal micro
 go run ./cmd/gateway
 
 # With environment variables
-GATEWAY_PORT=8080 ENABLE_LEGACY_AUTH=true go run ./cmd/gateway
+GATEWAY_PORT=8080 ENABLE_NEW_AUTH=true go run ./cmd/gateway
 ```
 
 ## Configuration
@@ -28,7 +28,7 @@ GATEWAY_PORT=8080 ENABLE_LEGACY_AUTH=true go run ./cmd/gateway
 | `USERS_SERVICE_URL` | Users service URL | `http://localhost:8081` |
 | `ORDERS_SERVICE_URL` | Orders service URL | `http://localhost:8082` |
 | `PAYMENTS_SERVICE_URL` | Payments service URL | `http://localhost:8083` |
-| `ENABLE_LEGACY_AUTH` | Enable legacy auth endpoints | `false` |
+| `ENABLE_NEW_AUTH` | Enable new auth endpoints | `false` |
 | `ENABLE_V1_API` | Enable v1 API routes | `true` |
 
 ## API Endpoints

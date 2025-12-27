@@ -12,7 +12,7 @@ type Config struct {
 	PaymentsServiceURL      string
 	NotificationsServiceURL string
 	JWTSecret               string
-	EnableLegacyAuth        bool
+	EnableNewAuth           bool
 	EnableV1API             bool
 	RateLimitRPS            int
 	RequestTimeout          int
@@ -26,7 +26,7 @@ func Load() *Config {
 		PaymentsServiceURL:      getEnv("PAYMENTS_SERVICE_URL", "http://localhost:8083"),
 		NotificationsServiceURL: getEnv("NOTIFICATIONS_SERVICE_URL", "http://localhost:8084"),
 		JWTSecret:               getEnv("JWT_SECRET", "your-secret-key"),
-		EnableLegacyAuth:        getEnvBool("ENABLE_LEGACY_AUTH", true),
+		EnableNewAuth:           getEnvBool("ENABLE_NEW_AUTH", true),
 		EnableV1API:             getEnvBool("ENABLE_V1_API", true),
 		RateLimitRPS:            getEnvInt("RATE_LIMIT_RPS", 100),
 		RequestTimeout:          getEnvInt("REQUEST_TIMEOUT_SECONDS", 30),
