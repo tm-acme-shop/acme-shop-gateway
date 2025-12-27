@@ -23,7 +23,7 @@ func Setup(h *handlers.Handlers, authMW *middleware.AuthMiddleware, cfg *config.
 	mux.HandleFunc("POST /auth/refresh", h.Auth.Refresh)
 	mux.HandleFunc("POST /auth/logout", h.Auth.Logout)
 
-	if cfg.EnableLegacyAuth {
+	if cfg.EnableNewAuth {
 		mux.HandleFunc("POST /auth/login/legacy", h.Auth.LoginLegacy)
 	}
 
