@@ -41,7 +41,7 @@ func main() {
 	go func() {
 		logger.Info("Server starting", logging.Fields{
 			"port":              cfg.Port,
-			"enable_legacy_auth": cfg.EnableLegacyAuth,
+			"enable_new_auth": cfg.EnableNewAuth,
 			"enable_v1_api":     cfg.EnableV1API,
 		})
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
