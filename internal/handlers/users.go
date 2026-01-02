@@ -117,19 +117,19 @@ func (h *UsersHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 	w.Write(body)
 }
 
-// GetUserV1 retrieves a user using the v1 API format.
+// GetUserDeprecated retrieves a user using the v1 API format.
 // Deprecated: Use GetUser instead.
 // TODO(TEAM-API): Remove after v1 deprecation deadline (Q1 2024)
-func (h *UsersHandler) GetUserV1(w http.ResponseWriter, r *http.Request) {
+func (h *UsersHandler) GetUserDeprecated(w http.ResponseWriter, r *http.Request) {
 	userID := r.PathValue("id")
 	if userID == "" {
 		http.Error(w, "User ID required", http.StatusBadRequest)
 		return
 	}
 
-	logging.Warnf("V1 API called: GetUserV1 for user %s", userID)
+	logging.Warnf("V1 API called: GetUserDeprecated for user %s", userID)
 
-	body, status, err := h.proxy.ProxyToUsersLegacy(r.Context(), "GET", "/users/"+userID, nil)
+	body, status, err := h.proxy.ProxyToUsers(r.Context(), "GET", "/users/"+userID, nil)
 	if err != nil {
 		http.Error(w, "Service unavailable", http.StatusServiceUnavailable)
 		return
@@ -153,7 +153,7 @@ func (h *UsersHandler) CreateUserV1(w http.ResponseWriter, r *http.Request) {
 
 	logging.Warnf("V1 API called: CreateUserV1")
 
-	body, status, err := h.proxy.ProxyToUsersLegacy(r.Context(), "POST", "/users", req)
+	body, status, err := h.proxy.ProxyToUsers(r.Context(), "POST", "/users", req)
 	if err != nil {
 		http.Error(w, "Service unavailable", http.StatusServiceUnavailable)
 		return
